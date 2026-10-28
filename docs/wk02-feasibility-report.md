@@ -35,7 +35,7 @@
 
 ## ตอบ
 
-![BPMN diagram แบบ As-Is](/images/BPMN%20as-is.png)
+![BPMN diagram แบบ As-Is](images/BPMN%20as-is.png)
 
 ---
 
@@ -45,7 +45,7 @@
 
 ## คำตอบ
 
-![BPMN diagram แบบ To-Be](/images/BPMN%20to-be.png)
+![BPMN diagram แบบ To-Be](images/BPMN%20to-be.png)
 
 ---
 

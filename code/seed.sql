@@ -1,0 +1,90 @@
+-- ข้อมูลจำลองสำหรับทดสอบ API (รันหลังจากรัน schema.sql แล้ว)
+
+USE cafe_pos;
+SET NAMES utf8mb4;
+
+-- ล้างข้อมูลเก่า
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE branch_daily_counters;
+TRUNCATE TABLE order_items;
+TRUNCATE TABLE receipts;
+TRUNCATE TABLE stock_movements;
+TRUNCATE TABLE orders;
+TRUNCATE TABLE menu_item_ingredients;
+TRUNCATE TABLE ingredients;
+TRUNCATE TABLE menu_items;
+TRUNCATE TABLE categories;
+TRUNCATE TABLE employees;
+TRUNCATE TABLE branches;
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 1. สาขา (Baristech Cafe)
+INSERT INTO branches (name, address) VALUES
+('สาขาบางแสน', 'บางแสน จ.ชลบุรี'),
+('สาขาชลบุรี', 'อ.เมือง จ.ชลบุรี');
+
+-- 2. พนักงาน
+-- บัญชีทดลอง (รหัสผ่านเก็บแบบ scrypt hash): owner / owner123 , cashier1–cashier2 / cashier123 (cashierN = แคชเชียร์ของสาขาที่ N)
+INSERT INTO employees (branch_id, name, role, username, password_hash) VALUES
+(1, 'แคชเชียร์บางแสน', 'cashier', 'cashier1', '6139a84f2123db066199499fc8b95a24:7dee9dbaa3cb4e267c7131dbf884903840bde23ce63bcb91c24f9be852c97aa87895506363d172f80ead1edffeb2a3d419375b0b18929c6b2b7bd35fd3f1b148'),
+(2, 'แคชเชียร์ชลบุรี', 'cashier', 'cashier2', '6139a84f2123db066199499fc8b95a24:7dee9dbaa3cb4e267c7131dbf884903840bde23ce63bcb91c24f9be852c97aa87895506363d172f80ead1edffeb2a3d419375b0b18929c6b2b7bd35fd3f1b148'),
+(1, 'เจ้าของร้าน (Owner)', 'owner', 'owner', '4ec17e95ca71af5d9c91135a433f2e5a:e48932fa21bce83ac8562eea8a6a4bd962584f89d6a2baa69121a8b3b2ddf44cbc6cf104ee526c508db1da019d457be468d247d954e95a299e312387a2d47b66');
+
+-- 3. หมวดหมู่
+INSERT INTO categories (name) VALUES ('เครื่องดื่มเย็น'), ('กาแฟร้อน'), ('เบเกอรี่');
+
+-- 4. เมนู (ทุกสาขามีเมนูชุดเดียวกัน 6 รายการ; menu_id ของสาขา b = (b-1)*6+1 ถึง b*6)
+INSERT INTO menu_items (branch_id, category_id, name, price, image_url) VALUES
+(1, 1, 'ชาไทยเย็น', 50.00, '/images/menu/thai-tea.jpg'),
+(1, 1, 'ลาเต้เย็น', 60.00, '/images/menu/iced-latte.jpg'),
+(1, 2, 'เอสเปรสโซ่', 45.00, '/images/menu/espresso.jpg'),
+(1, 2, 'คาปูชิโน่ร้อน', 55.00, '/images/menu/cappuccino.jpg'),
+(1, 3, 'ครัวซองต์เนย', 65.00, '/images/menu/croissant.jpg'),
+(1, 3, 'บราวนี่ช็อกโกแลต', 70.00, '/images/menu/brownie.jpg'),
+(2, 1, 'ชาไทยเย็น', 50.00, '/images/menu/thai-tea.jpg'),
+(2, 1, 'ลาเต้เย็น', 60.00, '/images/menu/iced-latte.jpg'),
+(2, 2, 'เอสเปรสโซ่', 45.00, '/images/menu/espresso.jpg'),
+(2, 2, 'คาปูชิโน่ร้อน', 55.00, '/images/menu/cappuccino.jpg'),
+(2, 3, 'ครัวซองต์เนย', 65.00, '/images/menu/croissant.jpg'),
+(2, 3, 'บราวนี่ช็อกโกแลต', 70.00, '/images/menu/brownie.jpg');
+
+-- รูปเริ่มต้นของเมนู: วางไฟล์ใน public/images/menu/ ตามชื่อด้านล่าง (ถ้ายังไม่มีไฟล์ จะแสดงไอคอนแทน)
+--   thai-tea.jpg, iced-latte.jpg, espresso.jpg, cappuccino.jpg, croissant.jpg, brownie.jpg
+-- เมนูที่เพิ่มเองผ่านหน้า "จัดการเมนู" (/menu.html) อัปโหลดรูปได้ในฟอร์ม
+
+-- 5. วัตถุดิบ (ใช้ร่วมกันทุกสาขา)
+-- id: 1 ใบชาไทย, 2 เมล็ดกาแฟ, 3 นมข้นหวาน, 4 แก้วพลาสติก, 5 นมสด, 6 น้ำตาลทราย,
+--     7 น้ำแข็ง, 8 แก้วกระดาษ(ร้อน), 9 ครัวซองต์, 10 บราวนี่, 11 กล่องกระดาษเบเกอรี่
+INSERT INTO ingredients (name, unit, stock_quantity, low_stock_threshold) VALUES
+('ใบชาไทย', 'g', 1000.00, 200.00),
+('เมล็ดกาแฟ', 'g', 1000.00, 200.00),
+('นมข้นหวาน', 'ml', 2000.00, 500.00),
+('แก้วพลาสติก', 'pcs', 100.00, 20.00),
+('นมสด', 'ml', 5000.00, 1000.00),
+('น้ำตาลทราย', 'g', 3000.00, 500.00),
+('น้ำแข็ง', 'g', 10000.00, 2000.00),
+('แก้วกระดาษ (ร้อน)', 'pcs', 100.00, 20.00),
+('ครัวซองต์ (สำเร็จรูป)', 'pcs', 40.00, 10.00),
+('บราวนี่ (สำเร็จรูป)', 'pcs', 40.00, 10.00),
+('กล่องกระดาษเบเกอรี่', 'pcs', 100.00, 20.00);
+
+-- 6. สูตรส่วนผสมต่อ 1 หน่วยที่ขาย (ทุกสาขาใช้สูตรเดียวกัน)
+-- 1 ชาไทยเย็น: ใบชา 20g, นมข้น 30ml, นมสด 40ml, น้ำตาล 10g, น้ำแข็ง 150g, แก้วพลาสติก 1
+-- 2 ลาเต้เย็น: กาแฟ 18g, นมข้น 20ml, นมสด 150ml, น้ำแข็ง 120g, แก้วพลาสติก 1
+-- 3 เอสเปรสโซ่: กาแฟ 18g, แก้วกระดาษ 1
+-- 4 คาปูชิโน่ร้อน: กาแฟ 18g, นมสด 120ml, น้ำตาล 5g, แก้วกระดาษ 1
+-- 5 ครัวซองต์เนย: ครัวซองต์ 1, กล่อง 1
+-- 6 บราวนี่ช็อกโกแลต: บราวนี่ 1, กล่อง 1
+INSERT INTO menu_item_ingredients (menu_id, ingredient_id, quantity_used) VALUES
+(1, 1, 20.00), (1, 3, 30.00), (1, 5, 40.00), (1, 6, 10.00), (1, 7, 150.00), (1, 4, 1.00),
+(2, 2, 18.00), (2, 3, 20.00), (2, 5, 150.00), (2, 7, 120.00), (2, 4, 1.00),
+(3, 2, 18.00), (3, 8, 1.00),
+(4, 2, 18.00), (4, 5, 120.00), (4, 6, 5.00), (4, 8, 1.00),
+(5, 9, 1.00), (5, 11, 1.00),
+(6, 10, 1.00), (6, 11, 1.00),
+(7, 1, 20.00), (7, 3, 30.00), (7, 5, 40.00), (7, 6, 10.00), (7, 7, 150.00), (7, 4, 1.00),
+(8, 2, 18.00), (8, 3, 20.00), (8, 5, 150.00), (8, 7, 120.00), (8, 4, 1.00),
+(9, 2, 18.00), (9, 8, 1.00),
+(10, 2, 18.00), (10, 5, 120.00), (10, 6, 5.00), (10, 8, 1.00),
+(11, 9, 1.00), (11, 11, 1.00),
+(12, 10, 1.00), (12, 11, 1.00);

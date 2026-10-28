@@ -19,7 +19,7 @@
 2. บาริสต้า
 3. เจ้าของร้าน
 
-![Use Case diagram ระบบจัดการร้านกาแฟ](/images/wk04-usecase.png)
+![Use Case diagram ระบบจัดการร้านกาแฟ](./images/wk04-usecase.png)
 
 
 ## Use Case Description
